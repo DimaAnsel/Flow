@@ -1,0 +1,13 @@
+      v  "gg      <
+               >        v  
+               ^  ?0A   "ggv  
+                  ~gg
+      #  >  @gg   ^     <  <  
+
+This program takes in a single line of input and then prints it out.
+It starts from the hash and looks for a direction (in this case, right).
+the variable gg is loaded. Then, the flow direction changes to up.
+The program gets a character input and stores it in gg, then compares the
+loaded variable (gg) to 0A, or the newline char '\n'. If they are the same,
+the program prints the newline and exits. Elsewise, gg is printed and
+another character input is obtained.
