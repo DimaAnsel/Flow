@@ -41,6 +41,9 @@
 
 #define VARSPACE_SIZE	16	// number of unique characters
 
+#define OP_LENGTH 3
+#define OPS_PER_SECTOR 8
+
 #define DEBUG_FILENAME "debug.txt"
 
 typedef enum FlowDir_enum {
@@ -54,9 +57,9 @@ typedef enum ErrCode_enum {
 	NO_ERROR,
 
 	// parsing errors
-	MISSING_FILE,
+	INVALID_FILE,
 	NO_START_CMD,
-	MULTIPLE_START_PATHS,
+	MULTIPLE_START_CMDS,
 
 	// runtime errors
 	LEAK_ERROR,
@@ -66,28 +69,21 @@ typedef enum ErrCode_enum {
 	INVALID_DEBUG_FILE
 } ErrCode;
 
-// Structs
-
-typedef struct FileLine_struct FileLine;
-typedef struct FileLine_struct* pFileLine;
-struct FileLine_struct {
-	int num_cols; // number of 3-character strings in this line
-	char** strings; // array of 3-character strings
-	pFileLine prev_line; // pointer to the previous line
-	pFileLine next_line; // pointer to the next line
-};
-
-
 
 // Global variables
 
-pFileLine PROGRAM_ORIGIN;
+char** PROGRAM_ARRAY;
+int PROGRAM_LINELEN;
 int PROGRAM_NUMLINES;
 
 char VAR_SPACE[VARSPACE_SIZE][VARSPACE_SIZE];
 char* LOADED_VAR;
 char** PROGRAM_PTR;
+int CURRENT_LINE;
+int CURRENT_COLUMN;
 FlowDir PROGRAM_FLOW;
+
+ErrCode ERROR;
 
 // function signatures
 
