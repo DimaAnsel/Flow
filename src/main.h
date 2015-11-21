@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #define CMD_START	'#' // start & end of program
+#define CMD_IGNORE	' ' // spaces are ignored
 
 #define CMD_LOAD	'@' // sets LOADED_VAR pointer
 #define CMD_SET		':' // sets loaded var to this
@@ -60,10 +61,14 @@ typedef enum ErrCode_enum {
 	INVALID_FILE,
 	NO_START_CMD,
 	MULTIPLE_START_CMDS,
+	NO_START_DIRECTION,
 
 	// runtime errors
 	LEAK_ERROR,
 	SYNTAX_ERROR,
+	INVALID_EXPRESSION,
+	INVALID_VARIABLENAME,
+	INVALID_OPERATOR,
 
 	// debug errors
 	INVALID_DEBUG_FILE
@@ -75,13 +80,12 @@ typedef enum ErrCode_enum {
 char** PROGRAM_ARRAY;
 int PROGRAM_LINELEN;
 int PROGRAM_NUMLINES;
-
-char VAR_SPACE[VARSPACE_SIZE][VARSPACE_SIZE];
-char* LOADED_VAR;
-char** PROGRAM_PTR;
 int CURRENT_LINE;
 int CURRENT_COLUMN;
 FlowDir PROGRAM_FLOW;
+
+char VAR_SPACE[VARSPACE_SIZE][VARSPACE_SIZE]; // variable space
+char* LOADED_VAR;
 
 ErrCode ERROR;
 

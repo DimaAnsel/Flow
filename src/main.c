@@ -9,6 +9,7 @@
 #include "main.h"
 #include "loader.h"
 #include "debug.h"
+#include "interpreter.h"
 
 void initGlobals() {
 	// initialize all variables to 0
@@ -20,7 +21,6 @@ void initGlobals() {
 	// initialize other globals
 	PROGRAM_FLOW = UP;
 	PROGRAM_ARRAY = NULL;
-	PROGRAM_PTR = NULL;
 	PROGRAM_NUMLINES = 0;
 	PROGRAM_LINELEN = 0;
 	CURRENT_LINE = 0;
@@ -44,6 +44,10 @@ void handleError(ErrCode error) {
 		printf("PARSING ERROR: Multiple start commands in file.\n");
 		break;
 	}
+	case NO_START_DIRECTION: {
+		printf("PARSING ERROR: No start direction specified.\n");
+		break;
+	}
 	case LEAK_ERROR: {
 		printf("RUNTIME ERROR: Program flow left file at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
 		break;
@@ -56,6 +60,10 @@ void handleError(ErrCode error) {
 		printf("DEBUG ERROR: Could not open debug file.\n");
 		break;
 	}
+	default: {
+		printf("ERROR: Unspecified error %d\n", error);
+		break;
+	}
 	}
 }
 
@@ -64,7 +72,10 @@ int main(void) {
 	initGlobals();
 
 	ERROR = loadFile("echo.fl");
-	handleError(ERROR);
+	if (ERROR) {
+		handleError(ERROR);
+	}
+	print_PROGRAM_ARRAY();
 
 	return 0;
 }

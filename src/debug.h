@@ -9,7 +9,10 @@
 
 #pragma once
 
-ErrCode dumpVarSpace() {
+#include "main.h"
+
+
+ErrCode dump_VAR_SPACE() {
 	FILE* fp = fopen(DEBUG_FILENAME, "a");
 	if (fp == NULL) {
 		return INVALID_DEBUG_FILE;
@@ -38,4 +41,25 @@ ErrCode dumpVarSpace() {
 
 	fclose(fp);
 	return NO_ERROR;
+}
+
+void print_PROGRAM_ARRAY() {
+	int i, j;
+	printf(".--PROGRAM_ARRAY");
+	for (i = 15; i < PROGRAM_LINELEN; i++) {
+		printf("-");
+	}
+	printf(".\n");
+	for (i = 0; i < PROGRAM_NUMLINES; i++) {
+		printf("|");
+		for (j = 0; j < PROGRAM_LINELEN; j++) {
+			printf("%c", PROGRAM_ARRAY[i][j]);
+		}
+		printf("|\n");
+	}
+	printf("'");
+	for (j = 0; j < PROGRAM_LINELEN; j++) {
+		printf("-");
+	}
+	printf("'\n");
 }

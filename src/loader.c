@@ -36,7 +36,7 @@ ErrCode loadFile(char filename[]) {
 			numLines++;
 		} else if (temp == CMD_START) {
 			CURRENT_LINE = numLines - 1;
-			CURRENT_COLUMN = lineLen;
+			CURRENT_COLUMN = lineLen - 1;
 			start_cmds++;
 		}
 
@@ -98,6 +98,29 @@ ErrCode loadFile(char filename[]) {
 	}
 
 	fclose(fp);
+
+	// set initial flow direction
+	switch (PROGRAM_ARRAY[CURRENT_LINE][CURRENT_COLUMN + 1]) {
+	case CMD_LEFT: {
+		PROGRAM_FLOW = LEFT;
+		break;
+	}
+	case CMD_RIGHT: {
+		PROGRAM_FLOW = RIGHT;
+		break;
+	}
+	case CMD_UP: {
+		PROGRAM_FLOW = UP;
+		break;
+	}
+	case CMD_DOWN: {
+		PROGRAM_FLOW = DOWN;
+		break;
+	}
+	default: {
+		return NO_START_DIRECTION;
+	}
+	}
 
 	return NO_ERROR;
 }
