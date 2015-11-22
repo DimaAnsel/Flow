@@ -1,8 +1,8 @@
-      v  "gg      <
-               >        v  
-               ^  ?0A   "ggv  
-                  ~gg
-      #  >  @gg   ^     <  <  
+      v  "gg   <
+            >        v  
+            ^  ?0A   "ggv  
+               ~gg   
+      #> @gg   ^     <  <  
 
 This program echos a single line of input. It starts from the hash and looks for
 a direction (in this case, right). The variable gg is loaded. Then, the flow

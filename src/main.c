@@ -25,6 +25,7 @@ void initGlobals() {
 	PROGRAM_LINELEN = 0;
 	CURRENT_LINE = 0;
 	CURRENT_COLUMN = 0;
+	PROGRAM_COMPLETE = 0;
 }
 
 void handleError(ErrCode error) {
@@ -69,13 +70,36 @@ void handleError(ErrCode error) {
 
 
 int main(void) {
+	int i = 0;
+	char filename[512];
 	initGlobals();
 
-	ERROR = loadFile("echo.fl");
-	if (ERROR) {
-		handleError(ERROR);
+	printf("[Flow] Enter the file to be executed: ");
+	filename[0] = getchar();
+	while (filename[i] != '\n') {
+		i++;
+		filename[i] = getchar();
 	}
-	print_PROGRAM_ARRAY();
+	filename[i] = '\0';
+
+	ERROR = loadFile(filename);
+	if (ERROR != NO_ERROR) {
+		handleError(ERROR);
+		return 0;
+	} else {
+		printf("[Flow] Beginning execution . . .\n");
+	}
+
+	while (PROGRAM_COMPLETE == 0) {
+		ERROR = tick();
+		if (ERROR != NO_ERROR) {
+			handleError(ERROR);
+			break;
+		}
+	}
+	if (ERROR == NO_ERROR) {
+		printf("[Flow] Program exited successfully.\n");
+	}
 
 	return 0;
 }

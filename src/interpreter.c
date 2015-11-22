@@ -11,7 +11,7 @@
 #include "interpreter.h"
 
 ErrCode tick() {
-	// first move
+	// move
 	switch (PROGRAM_FLOW) {
 	case UP: {
 		CURRENT_LINE--;
@@ -41,6 +41,10 @@ ErrCode tick() {
 	char* expression = &(PROGRAM_ARRAY[CURRENT_LINE][CURRENT_COLUMN + 1]);
 	// then execute
 	switch (PROGRAM_ARRAY[CURRENT_LINE][CURRENT_COLUMN]) {
+	case CMD_START: {
+		PROGRAM_COMPLETE = 1;
+		return NO_ERROR;
+	}
 	case CMD_LOAD: {
 		return cmd_load(expression);
 	}
