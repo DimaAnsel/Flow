@@ -33,6 +33,7 @@ void handleError(ErrCode error) {
 	case NO_ERROR: {
 		break;
 	}
+	// parsing errors
 	case INVALID_FILE: {
 		printf("PARSING ERROR: Invalid file.\n");
 		break;
@@ -49,14 +50,21 @@ void handleError(ErrCode error) {
 		printf("PARSING ERROR: No start direction specified.\n");
 		break;
 	}
+	// runtime errors
 	case LEAK_ERROR: {
 		printf("RUNTIME ERROR: Program flow left file at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
 		break;
 	}
-	case SYNTAX_ERROR: {
-		printf("SYNTAX ERROR: Syntax error at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
-		break;
+	case INVALID_EXPRESSION: {
+		printf("RUNTIME ERROR: Invalid expression at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
 	}
+	case INVALID_VARIABLENAME: {
+		printf("RUNTIME ERROR: Invalid variable name at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
+	}
+	case INVALID_OPERATOR: {
+		printf("RUNTIME ERROR: Invalid operator at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
+	}
+	// miscellaneous errors
 	case INVALID_DEBUG_FILE: {
 		printf("DEBUG ERROR: Could not open debug file.\n");
 		break;
@@ -100,6 +108,8 @@ int main(void) {
 	if (ERROR == NO_ERROR) {
 		printf("[Flow] Program exited successfully.\n");
 	}
+	printf("\n[Flow] Press Enter to close this window . . . ");
+	getchar();
 
 	return 0;
 }

@@ -65,7 +65,6 @@ typedef enum ErrCode_enum {
 
 	// runtime errors
 	LEAK_ERROR,
-	SYNTAX_ERROR,
 	INVALID_EXPRESSION,
 	INVALID_VARIABLENAME,
 	INVALID_OPERATOR,
@@ -93,3 +92,4 @@ ErrCode ERROR;
 // function signatures
 
 void initGlobals();
+void handleError(ErrCode error);
