@@ -9,6 +9,7 @@
 
 from tkinter import *
 from tkinter import filedialog
+from tkinter import messagebox
 
 "███████████████████████████████   Constants   ████████████████████████████████"
 
@@ -24,18 +25,28 @@ NUM_TRIPLETS_X = 24
 NUM_TRIPLETS_Y = 32
 
 # Canvas attributes
-CANVAS_WIDTH = NUM_TRIPLETS_X * TRIPLET_WIDTH
-CANVAS_HEIGHT = NUM_TRIPLETS_Y * TRIPLET_HEIGHT
+BORDER_OFFSET = 5
+RULER_WIDTH = 16
+CANVAS_WIDTH = NUM_TRIPLETS_X * TRIPLET_WIDTH + RULER_WIDTH
+CANVAS_HEIGHT = NUM_TRIPLETS_Y * TRIPLET_HEIGHT + RULER_WIDTH
 CANVAS_BG_COLOR = "#CCCCFF"
-CANVAS_OFFSET = (5, 5)
+CANVAS_OFFSET = (BORDER_OFFSET + RULER_WIDTH, BORDER_OFFSET + RULER_WIDTH)
+
+RULER_FILL = "#EEEEEE"
+RULER_BORDER_COLOR = "#000000"
+RULER_BORDER_WIDTH = 1.0
 
 NORMAL_FILL = ""
 NORMAL_BORDER_COLOR = "#888888"
-NORMAL_BORDER_WIDTH = 1
+NORMAL_BORDER_WIDTH = 1.0
 
 ACTIVE_FILL = "#FFFFFF"
 ACTIVE_BORDER_COLOR = "#555555"
 ACTIVE_BORDER_WIDTH = 1.4
+
+SELECTED_FILL = "#8888CC"
+SELECTED_BORDER_COLOR = "#555555"
+SELECTED_BORDER_WIDTH = 1.4
 
 
 # Flow commands
@@ -85,15 +96,19 @@ class Editor(Frame):
     self._insertindex = 0 # position in cell to insert
     self._selection = [(0,0), (0,0)] # topleft and botright corners of selection
     self._direction = "right" # direction (defaults to right)
+    self._clipboard = {"size": (0, 0)}
 
     # canvas tracking stuff
     self._canvasitems = {}
-    self._grid = {}
+    self._grid = {(0, 0): "#> "}
     self._rects = {}
     self._canvastopleft = (0, 0)
+    self._rulers = {}
 
+    # setup
     self.createWidgets()
     self._canvas.focus_set()
+    self.master.protocol("WM_DELETE_WINDOW", self.closeProgram)
     self.pack()
 
     self.new()
@@ -112,6 +127,7 @@ class Editor(Frame):
     self._canvas.pack()
 
     self.initCanvasRects()
+    self.initCanvasRulers()
 
     # Menu bar
     self.menubar = Menu(self.master)
@@ -126,8 +142,12 @@ class Editor(Frame):
     self.menubar.add_cascade(label = "File",  menu = self.filemenu)
 
     self.editmenu = Menu(self.menubar, tearoff = 0)
+    self.editmenu.add_command(label = "Cut     (Ctr-X)", command = self.cut)
+    self.editmenu.add_command(label = "Copy  (Ctr-C)", command = self.copy)
+    self.editmenu.add_command(label = "Paste  (Ctr-V)", command = self.paste)
+    self.editmenu.add_separator()
     self.editmenu.add_command(label = "Find    (Ctr-F)", command = self.find)
-    self.editmenu.add_command(label = "Goto  (Ctr-G)", command = self.goto)
+    self.editmenu.add_command(label = "Goto   (Ctr-G)", command = self.goto)
     self.menubar.add_cascade(label = "Edit",  menu = self.editmenu)
 
     self.menubar.add_command(label = "Help",  command = self.help)
@@ -148,39 +168,246 @@ class Editor(Frame):
     self.bind_all("<Control-o>", self.open)
     self.bind_all("<Control-s>", self.save)
     self.bind_all("<Control-S>", self.saveAs)
+    self.bind_all("<Control-x>", self.cut)
+    self.bind_all("<Control-c>", self.copy)
+    self.bind_all("<Control-v>", self.paste)
     self.bind_all("<Control-f>", self.find)
     self.bind_all("<Control-g>", self.goto)
     self.bind_all("<F1>", self.help)
+
+    self._canvas.bind("<Left>", self.moveLeft)
+    self._canvas.bind("<Right>", self.moveRight)
+    self._canvas.bind("<Up>", self.moveUp)
+    self._canvas.bind("<Down>", self.moveDown)
 
     self._canvas.bind("<Shift-Left>", self.selectLeft)
     self._canvas.bind("<Shift-Right>", self.selectRight)
     self._canvas.bind("<Shift-Up>", self.selectUp)
     self._canvas.bind("<Shift-Down>", self.selectDown)
 
+    self._canvas.bind("<Delete>", self.delText)
+    self._canvas.bind("<BackSpace>", self.backspaceText)
+
+  ###############
+  # delText
+  #   Deletes text in the selected field.
+  def delText(self, event = None):
+    print("delText called")
+    for x in range(self._selection[0][0], self._selection[1][0] + 1):
+      for y in range(self._selection[0][1], self._selection[1][1] + 1):
+        if (x, y) in self._grid.keys():
+          del self._grid[(x, y)]
+          self._canvas.delete(self._canvasitems[(x, y)])
+          del self._canvasitems[(x, y)]
+
+  ###############
+  # backspaceText
+  #   Backspaces a character.
+  def backspaceText(self, event = None):
+    print("backspaceText called")
+    self._selection = [self._position, self._position]
+    if self._insertindex == 0:
+      self.advance(-1)
+      if self._position in self._grid.keys():
+        self._grid[self._position] = self._grid[self._position][:2] + " "
+        self._insertindex = 2
+    elif self._insertindex == 1:
+      del self._grid[self._position]
+      self._canvas.delete(self._canvasitems[self._position])
+      del self._canvasitems[self._position]
+      self._insertindex = 0
+      return # to avoid canvas item set error
+    elif self._insertindex == 2:
+      if self._position in self._grid.keys():
+        self._grid[self._position] = self._grid[self._position][0] + "  "
+      self._insertindex = 1
+    self._canvas.itemconfig(self._canvasitems[self._position],
+                            text = self._grid[self._position])
+
+
+  ###############
+  # cut
+  #   Copies selected text to clipboard
+  #   and then deletes from file.
+  def cut(self, event = None):
+    print("cut called")
+    self._clipboard = {}
+    self._clipboard["size"] = (self._selection[1][0] - self._selection[0][0],
+                               self._selection[1][1] - self._selection[0][1])
+    for x in range(self._selection[0][0], self._selection[1][0] + 1):
+      for y in range(self._selection[0][1], self._selection[1][1] + 1):
+        if (x, y) in self._grid.keys():
+          pos = (x - self._selection[0][0], y - self._selection[0][1])
+          self._clipboard[pos] = self._grid[(x, y)]
+          # now delete stuff
+          del self._grid[(x, y)]
+          self._canvas.delete(self._canvasitems[(x, y)])
+          del self._canvasitems[(x, y)]
+
+  ###############
+  # copy
+  #   Copies selected text to clipboard.
+  def copy(self, event = None):
+    print("copy called")
+    self._clipboard = {}
+    self._clipboard["size"] = (self._selection[1][0] - self._selection[0][0],
+                               self._selection[1][1] - self._selection[0][1])
+    for x in range(self._selection[0][0], self._selection[1][0] + 1):
+      for y in range(self._selection[0][1], self._selection[1][1] + 1):
+        if (x, y) in self._grid.keys():
+          pos = (x - self._selection[0][0], y - self._selection[0][1])
+          self._clipboard[pos] = self._grid[(x, y)]
+
+  ###############
+  # paste
+  #   Pastes selected text from clipboard to
+  #   file, starting from top left.
+  def paste(self, event = None):
+    print("paste called")
+    for x in range(self._clipboard["size"][0] + 1):
+      for y in range(self._clipboard["size"][1] + 1):
+        pos = (self._selection[0][0] + x, self._selection[0][1] + y)
+        if (x, y) in self._clipboard.keys(): # replace
+          self._grid[pos] = self._clipboard[(x, y)]
+          if pos in self._canvasitems.keys():
+            self._canvas.itemconfig(self._canvasitems[pos],
+                                    text = self._grid[pos])
+          else:
+            loc = self.getCanvasLoc(pos)
+            self._canvasitems[pos] = self._canvas.create_text(loc[0],
+                                      loc[1],
+                                      text = self._grid[pos],
+                                      font = (TRIPLET_FONT, -TRIPLET_HEIGHT),
+                                      anchor = NW)
+        else: # clear
+          if pos in self._grid.keys():
+            del self._grid[pos]
+            self._canvas.delete(self._canvasitems[pos])
+            del self._canvasitems[pos]
+    self.raiseRuler()
   ###############
   # b1Action
   #   Performs the left-click action.
-  #   Updates the currently selected item.
+  #   Updates the currently position.
   def b1Action(self, event):
+    if event.x < CANVAS_OFFSET[0] or event.y < CANVAS_OFFSET[1]:
+      return # ignore
+    self.colorSelection("normal")
+
+    x = (event.x - CANVAS_OFFSET[0]) // TRIPLET_WIDTH
+    y = (event.y - CANVAS_OFFSET[1]) // TRIPLET_HEIGHT
+    self._position = (x + self._canvastopleft[0], y + self._canvastopleft[1])
+    self._insertindex = 0
+    self._selection = [self._position, self._position]
+
+    self.colorSelection("active")
+
+  ###############
+  # b1Drag
+  #   Performs the left button drag action.
+  #   Updates selection and current position.
+  def b1Drag(self, event):
+    if event.x < CANVAS_OFFSET[0] or event.y < CANVAS_OFFSET[1]:
+      return # ignore
+    x = (event.x - CANVAS_OFFSET[0]) // TRIPLET_WIDTH
+    y = (event.y - CANVAS_OFFSET[1]) // TRIPLET_HEIGHT
+    curr = (x + self._canvastopleft[0], y + self._canvastopleft[1])
+    
+    if self._selection[0][0] > curr[0]: # x
+      self._selection[0] = (curr[0], self._selection[0][1])
+    elif self._selection[1][0] < curr[0]:
+      self._selection[1] = (curr[0], self._selection[1][1])
+
+    if self._selection[0][1] > curr[1]: # y
+      self._selection[0] = (self._selection[0][0], curr[1])
+    elif self._selection[1][1] < curr[1]:
+      self._selection[1] = (self._selection[1][0], curr[1])
+    
+    self._position = curr # update pos
+
+    # recolor
+    self.colorSelection("active")
+    self._insertindex = 0
+
+  ###############
+  # colorSelection
+  #   Colors the selection's rectangles.
+  def colorSelection(self, mode):
+    if mode == "active":
+      mode_fill = SELECTED_FILL
+      mode_border_color = SELECTED_BORDER_COLOR
+      mode_border_width = SELECTED_BORDER_WIDTH
+    elif mode == "normal":
+      mode_fill = NORMAL_FILL
+      mode_border_color = NORMAL_BORDER_COLOR
+      mode_border_width = NORMAL_BORDER_WIDTH
     for x in range(self._selection[0][0], self._selection[1][0] + 1):
       for y in range(self._selection[0][1], self._selection[1][1] + 1):
-        self._canvas.itemconfig(self._rects[(x, y)],
-                                fill = NORMAL_FILL,
-                                outline = NORMAL_BORDER_COLOR,
-                                width = NORMAL_BORDER_WIDTH)
+        if self.isInView(x, y): # valid rectangle
+          rect = (x - self._canvastopleft[0], y - self._canvastopleft[1])
+          self._canvas.itemconfig(self._rects[rect],
+                                  fill = mode_fill,
+                                  outline = mode_border_color,
+                                  width = mode_border_width)
+    if mode == "active" and self.isInView(self._position):
+        rect = (self._position[0] - self._canvastopleft[0],
+                self._position[1] - self._canvastopleft[1])
+        self._canvas.itemconfig(self._rects[rect],
+                                fill = ACTIVE_FILL,
+                                outline = ACTIVE_BORDER_COLOR,
+                                width = ACTIVE_BORDER_WIDTH)
 
-    x = (event.x - CANVAS_OFFSET[0]) // TRIPLET_WIDTH + self._canvastopleft[0]
-    y = (event.y - CANVAS_OFFSET[1]) // TRIPLET_HEIGHT + self._canvastopleft[1]
-    self._position = (x, y)
-    self._canvas.itemconfig(self._rects[self._position],
-                            fill = ACTIVE_FILL,
-                            outline = ACTIVE_BORDER_COLOR,
-                            width = ACTIVE_BORDER_WIDTH)
+
+
+
+  ###############
+  # moveLeft
+  #   Moves active cell to left.
+  def moveLeft(self, event = None):
+    self.colorSelection("normal")
+    self._position = (self._position[0] - 1, self._position[1])
+    self._selection = [self._position, self._position]
+    if not self.isInView(self._position):
+      self.shiftView("left")
     self._insertindex = 0
-    self._selection = ((x, y), (x, y))
+    self.colorSelection("active")
 
-  def b1Drag(self, event):
-    print("b1Drag called")
+
+  ###############
+  # moveRight
+  #   Moves active cell to right.
+  def moveRight(self, event = None):
+    self.colorSelection("normal")
+    self._position = (self._position[0] + 1, self._position[1])
+    self._selection = [self._position, self._position]
+    if not self.isInView(self._position):
+      self.shiftView("right")
+    self._insertindex = 0
+    self.colorSelection("active")
+
+  ###############
+  # moveUp
+  #   Moves active cell upwards.
+  def moveUp(self, event = None):
+    self.colorSelection("normal")
+    self._position = (self._position[0], self._position[1] - 1)
+    self._selection = [self._position, self._position]
+    if not self.isInView(self._position):
+      self.shiftView("up")
+    self._insertindex = 0
+    self.colorSelection("active")
+
+  ###############
+  # moveDown
+  #   Moves active cell downwards.
+  def moveDown(self, event = None):
+    self.colorSelection("normal")
+    self._position = (self._position[0], self._position[1] + 1)
+    self._selection = [self._position, self._position]
+    if not self.isInView(self._position):
+      self.shiftView("down")
+    self._insertindex = 0
+    self.colorSelection("active")
 
   def selectLeft(self, event = None):
     print("selectLeft called")
@@ -209,7 +436,15 @@ class Editor(Frame):
 
       # reset selection
       if (self._selection[0] != self._selection[1]):
-        self._selection = (self._position, self._position)
+        for x in range(self._selection[0][0], self._selection[1][0] + 1):
+          for y in range(self._selection[0][1], self._selection[1][1] + 1):
+            if (x,y) != self._position and self.isInView(x, y):
+              rect = (x - self._canvastopleft[0], y - self._canvastopleft[1])
+              self._canvas.itemconfig(self._rects[rect],
+                                      fill = NORMAL_FILL,
+                                      outline = NORMAL_BORDER_COLOR,
+                                      width = NORMAL_BORDER_WIDTH)
+        self._selection = [self._position, self._position]
 
       # update text
       if self._insertindex == 0:
@@ -230,49 +465,115 @@ class Editor(Frame):
                                               text = self._grid[self._position],
                                               font = (TRIPLET_FONT, -TRIPLET_HEIGHT),
                                               anchor = NW)
+        self.raiseRuler()
 
       if self._insertindex == 3:
+        self.advance()
+      elif self._insertindex == 1:
+        if event.char == CMD_UP:
+          self._direction = "up"
+        elif event.char == CMD_DOWN:
+          self._direction = "down"
+        elif event.char == CMD_LEFT:
+          self._direction = "left"
+        elif event.char == CMD_RIGHT:
+          self._direction = "right"
+        else:
+          return
+        self.advance()
+      elif self._grid[self._position][0] == "#" and self._insertindex == 2:
+        if event.char == CMD_UP:
+          self._direction = "up"
+        elif event.char == CMD_DOWN:
+          self._direction = "down"
+        elif event.char == CMD_LEFT:
+          self._direction = "left"
+        elif event.char == CMD_RIGHT:
+          self._direction = "right"
+        else:
+          return
         self.advance()
 
 
   ###############
   # advance
   #   Moves position in the current direction.
-  def advance(self):
-    self._canvas.itemconfig(self._rects[self._position],
-                            fill = NORMAL_FILL,
-                            outline = NORMAL_BORDER_COLOR,
-                            width = NORMAL_BORDER_WIDTH)
+  def advance(self, delta = 1):
+    self.colorSelection("normal")
     if self._direction == "up":
-      self._position = (self._position[0], self._position[1] - 1)
+      self._position = (self._position[0], self._position[1] - delta)
     elif self._direction == "down":
-      self._position = (self._position[0], self._position[1] + 1)
+      self._position = (self._position[0], self._position[1] + delta)
     elif self._direction == "left":
-      self._position = (self._position[0] - 1, self._position[1])
+      self._position = (self._position[0] - delta, self._position[1])
     elif self._direction == "right":
-      self._position = (self._position[0] + 1, self._position[1])
+      self._position = (self._position[0] + delta, self._position[1])
     rect_idx = (self._position[0] - self._canvastopleft[0],
                 self._position[1] - self._canvastopleft[1])
-    self._canvas.itemconfig(self._rects[self._position],
-                            fill = ACTIVE_FILL,
-                            outline = ACTIVE_BORDER_COLOR,
-                            width = ACTIVE_BORDER_WIDTH)
+    if not self.isInView(self._position):
+      self.shiftView()
 
-    self._selection = (self._position, self._position)
+    self._selection = [self._position, self._position]
     self._insertindex = 0
+    self.colorSelection("active")
 
   ###############
-  # updateCanvasItems
-  #   Updates canvasitems of a given grid cell.
-  def updateCanvasItems(self):
+  # shiftView
+  #   Shifts the view in a given direction
+  #   in relation to the file data (text).
+  def shiftView(self, direction, spaces = 1):
+    self.colorSelection("normal")
+    if direction == "up":
+      self._canvastopleft = (self._canvastopleft[0],
+                             self._canvastopleft[1] - 1)
+      self.shiftCanvasText("down")
+    elif direction == "down":
+      self._canvastopleft = (self._canvastopleft[0],
+                             self._canvastopleft[1] + 1)
+      self.shiftCanvasText("up")
+    elif direction == "left":
+      self._canvastopleft = (self._canvastopleft[0] - 1,
+                             self._canvastopleft[1])
+      self.shiftCanvasText("right")
+    elif direction == "right":
+      self._canvastopleft = (self._canvastopleft[0] + 1,
+                             self._canvastopleft[1])
+      self.shiftCanvasText("left")
+
+    # renumber rulers
+    for x in range(NUM_TRIPLETS_X):
+        self._canvas.itemconfig(self._rulers["x"][x],
+                                text = str(self._canvastopleft[0] + x))
+    for y in range(NUM_TRIPLETS_Y):
+        self._canvas.itemconfig(self._rulers["y"][y],
+                                text = str(self._canvastopleft[1] + y))
+    self.colorSelection("active")
+
+  ###############
+  # isInView
+  #   True if the given coord is within canvas view.
+  def isInView(self, coordorx, y = 0):
+    if isinstance(coordorx, int):
+      coordorx = (coordorx, y)
+    return (self._canvastopleft[0] <= coordorx[0] and
+            coordorx[0] < self._canvastopleft[0] + NUM_TRIPLETS_X and
+            self._canvastopleft[1] <= coordorx[1] and
+            coordorx[1] < self._canvastopleft[1] + NUM_TRIPLETS_Y)
+    
+  ###############
+  # reloadCanvasItems
+  #   Reloads canvasitems from the grid.
+  def reloadCanvasItems(self):
     self._canvas.delete("all")
     self.initCanvasRects()
+    self.initCanvasRulers()
     for key in self._grid.keys():
       loc = self.getCanvasLoc(key)
       self._canvasitems[key] = self._canvas.create_text(loc[0], loc[1],
                                 text = self._grid[key],
                                 font = (TRIPLET_FONT, -TRIPLET_HEIGHT),
                                 anchor = NW)
+    self.raiseRuler()
 
   ###############
   # initCanvasRects
@@ -294,6 +595,60 @@ class Editor(Frame):
                             fill = ACTIVE_FILL,
                             outline = ACTIVE_BORDER_COLOR,
                             width = ACTIVE_BORDER_WIDTH)
+
+  ###############
+  # initCanvasRulers
+  #   Initializes canvas rulers.
+  def initCanvasRulers(self):
+    self._rulers["xrect"] = self._canvas.create_rectangle(CANVAS_OFFSET[0],
+                              0,
+                              CANVAS_WIDTH + BORDER_OFFSET,
+                              CANVAS_OFFSET[1],
+                              fill = RULER_FILL,
+                              outline = RULER_BORDER_COLOR,
+                              width = RULER_BORDER_WIDTH)
+    self._rulers["yrect"] = self._canvas.create_rectangle(0,
+                              CANVAS_OFFSET[1],
+                              CANVAS_OFFSET[0],
+                              CANVAS_HEIGHT + BORDER_OFFSET,
+                              fill = RULER_FILL,
+                              outline = RULER_BORDER_COLOR,
+                              width = RULER_BORDER_WIDTH)
+    self._rulers["square"] = self._canvas.create_rectangle(0,
+                              0,
+                              CANVAS_OFFSET[0],
+                              CANVAS_OFFSET[1],
+                              fill = RULER_FILL,
+                              outline = RULER_BORDER_COLOR,
+                              width = RULER_BORDER_WIDTH)
+
+    self._rulers["x"] = []
+    for x in range(self._canvastopleft[0], NUM_TRIPLETS_X + 1):
+      text = self._canvas.create_text(CANVAS_OFFSET[0] + (x + 0.5) * TRIPLET_WIDTH,
+                                      CANVAS_OFFSET[1] / 2,
+                                      text = str(x),
+                                      font = (TRIPLET_FONT, -RULER_WIDTH * 4 // 5))
+      self._rulers["x"].append(text)
+    self._rulers["y"] = []
+    for y in range(self._canvastopleft[1], NUM_TRIPLETS_Y + 1):
+      text = self._canvas.create_text(CANVAS_OFFSET[0] / 2,
+                                      CANVAS_OFFSET[1] + (y + 0.5) * TRIPLET_HEIGHT,
+                                      text = str(y),
+                                      font = (TRIPLET_FONT, -RULER_WIDTH * 4 // 5))
+      self._rulers["y"].append(text)
+
+  ###############
+  # raiseRuler
+  #   Raises ruler above other elements of canvas.
+  def raiseRuler(self):
+    return
+    self._canvas.tag_raise(self._rulers["xrect"])
+    self._canvas.tag_raise(self._rulers["yrect"])
+    self._canvas.tag_raise(self._rulers["square"])
+    for item in self._rulers["x"]:
+      self._canvas.tag_raise(item)
+    for item in self._rulers["y"]:
+      self._canvas.tag_raise(item)
 
   ###############
   # findByData
@@ -373,19 +728,19 @@ class Editor(Frame):
               (coordorx[1] - self._canvastopleft[1]) * TRIPLET_HEIGHT + CANVAS_OFFSET[1])
 
   ##################
-  # shiftCanvas
-  #   Shifts all elements of the canvas
+  # shiftCanvasText
+  #   Shifts all text elements of the canvas
   #   in given direction by one triplet.
-  def shiftCanvas(self, direction):
-    for item in self._canvas.find_all():
+  def shiftCanvasText(self, direction, cells = 1):
+    for key, val in self._canvasitems.items():
       if direction == "right":
-        self._canvas.move(item, -TRIPLET_WIDTH, 0)
+        self._canvas.move(val, TRIPLET_WIDTH, 0)
       elif direction == "left":
-        self._canvas.move(item, TRIPLET_WIDTH, 0)
+        self._canvas.move(val, -TRIPLET_WIDTH, 0)
       elif direction == "up":
-        self._canvas.move(item, 0, -TRIPLET_HEIGHT)
+        self._canvas.move(val, 0, -TRIPLET_HEIGHT)
       elif direction == "down":
-        self._canvas.move(item, 0, TRIPLET_HEIGHT)
+        self._canvas.move(val, 0, TRIPLET_HEIGHT)
 
   ##################
   # new
@@ -393,20 +748,35 @@ class Editor(Frame):
   #   prompts user to save.
   def new(self, event = None):
     print("new called")
+    print(self._grid.items())
+    print(BASE_GRID.items())
 
-    if self._grid != BASE_GRID:
+    if self._grid.items() != BASE_GRID.items():
       self.promptSave()
-      self._openfile = ""
-      self._grid = {(0,0): "#> "}
-      self._position = (0,0)
-      self._insertindex = 0
-      self.updateCanvasItems()
+    self._openfile = ""
+    self._grid = {(0,0): "#> "}
+    self.colorSelection("normal")
+    self._position = (0,0)
+    self._selection = [(0, 0), (0, 0)]
+    self._canvastopleft = (0, 0)
+    self.colorSelection("active")
+    self._insertindex = 0
+    self.reloadCanvasItems()
 
   ##################
   # promptSave
   #   Prompts user to save file.
   def promptSave(self):
-    print("promptSave called")
+    if messagebox.askquestion("Save","Data will be lost.\nWould you like to save?") == "yes":
+      print()
+      self.save()
+
+  ##################
+  # closeProgram
+  #   Prompts save, then closes program.
+  def closeProgram(self, event = None):
+    self.promptSave()
+    self.master.destroy()
 
   ##################
   # open
@@ -419,7 +789,6 @@ class Editor(Frame):
       filetypes = [("Flow files", "*.fl")])
     if self._openfile != "":
       self.loadIn()
-      self.updateCanvasItems()
 
   ##################
   # loadIn
@@ -443,7 +812,7 @@ class Editor(Frame):
       x = 0
       y += 1
 
-    self.updateCanvasItems()
+    self.reloadCanvasItems()
 
 
   ##################
@@ -527,6 +896,5 @@ def main():
   editor = Editor(root)
 
   root.mainloop()
-  root.destroy()
 
 main()
