@@ -1,0 +1,26 @@
+# Flow Editor Documentation
+
+## Keyboard Shortcuts
+
+Shortcut | Command    | Description
+------|---------------|---------------------------------------------
+Ctr-N | New           | Creates a new document.
+Ctr-O | Open          | Opens a document for editing.
+Ctr-S | Save          | Saves the current document.
+Ctr-Shift-S | Save As | Opens a dialog to save the current document.
+Ctr-X | Cut           | Cuts the selected region.
+Ctr-C | Copy          | Copies the selected region to clipboard.
+Ctr-V | Paste         | Pastes the clipboard to current selection.
+Ctr-F | Find          | Finds cells containing a certain string.
+Ctr-G | Goto          | Goes to a given cell by row and column.
+F1    | Help          | Opens documentation.
+
+## Opening and saving files.
+
+Files may be opened and saved through the file menu. To open a file, select File->Open and find the file you wish to open. Note that only Flow files saved with the .fl extension are able to be opened.
+
+To save a file, select File->Save and type the name of or select the file you wish to save. The file will be saved as a Flow file with the .fl extension but can be opened and viewed with normal text editors. If the file has been previously saved or opened, saving will use that file's name. To specify a different filename, use File->Save As.
+
+# Selecting and navigating in a document.
+
+To move around the document, either click on a cell or use the arrow keys to move the active cell. To specify a selection for copying, either click and drag or use the arrow keys while holding down the Shift key.

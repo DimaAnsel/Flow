@@ -221,8 +221,9 @@ class Editor(Frame):
       if self._position in self._grid.keys():
         self._grid[self._position] = self._grid[self._position][0] + "  "
       self._insertindex = 1
-    self._canvas.itemconfig(self._canvasitems[self._position],
-                            text = self._grid[self._position])
+    if self._position in self._grid.keys():
+      self._canvas.itemconfig(self._canvasitems[self._position],
+                              text = self._grid[self._position])
 
 
   ###############
@@ -410,16 +411,44 @@ class Editor(Frame):
     self.colorSelection("active")
 
   def selectLeft(self, event = None):
-    print("selectLeft called")
+    self._position = (self._position[0] - 1, self._position[1])
+    
+    if self._selection[0][0] > self._position[0]: # x
+      self._selection[0] = (self._position[0], self._selection[0][1])
+
+    # recolor
+    self.colorSelection("active")
+    self._insertindex = 0
 
   def selectRight(self, event = None):
-    print("selectRight called")
+    self._position = (self._position[0] + 1, self._position[1])
+
+    if self._selection[1][0] < self._position[0]:
+      self._selection[1] = (self._position[0], self._selection[1][1])
+
+    # recolor
+    self.colorSelection("active")
+    self._insertindex = 0
 
   def selectUp(self, event = None):
-    print("selectUp called")
+    self._position = (self._position[0], self._position[1] - 1)
+    
+    if self._selection[0][1] > self._position[1]:
+      self._selection[0] = (self._selection[0][0], self._position[1])
+
+    # recolor
+    self.colorSelection("active")
+    self._insertindex = 0
 
   def selectDown(self, event = None):
-    print("selectDown called")
+    self._position = (self._position[0], self._position[1] + 1)
+
+    if self._selection[1][1] < self._position[1]:
+      self._selection[1] = (self._selection[1][0], self._position[1])
+
+    # recolor
+    self.colorSelection("active")
+    self._insertindex = 0
 
   ###############
   # keyPress
@@ -566,14 +595,13 @@ class Editor(Frame):
   def reloadCanvasItems(self):
     self._canvas.delete("all")
     self.initCanvasRects()
-    self.initCanvasRulers()
     for key in self._grid.keys():
       loc = self.getCanvasLoc(key)
       self._canvasitems[key] = self._canvas.create_text(loc[0], loc[1],
                                 text = self._grid[key],
                                 font = (TRIPLET_FONT, -TRIPLET_HEIGHT),
                                 anchor = NW)
-    self.raiseRuler()
+    self.initCanvasRulers() # must be last to keep above other items
 
   ###############
   # initCanvasRects
@@ -641,7 +669,6 @@ class Editor(Frame):
   # raiseRuler
   #   Raises ruler above other elements of canvas.
   def raiseRuler(self):
-    return
     self._canvas.tag_raise(self._rulers["xrect"])
     self._canvas.tag_raise(self._rulers["yrect"])
     self._canvas.tag_raise(self._rulers["square"])
@@ -734,23 +761,19 @@ class Editor(Frame):
   def shiftCanvasText(self, direction, cells = 1):
     for key, val in self._canvasitems.items():
       if direction == "right":
-        self._canvas.move(val, TRIPLET_WIDTH, 0)
+        self._canvas.move(val, TRIPLET_WIDTH * cells, 0)
       elif direction == "left":
-        self._canvas.move(val, -TRIPLET_WIDTH, 0)
+        self._canvas.move(val, -TRIPLET_WIDTH * cells, 0)
       elif direction == "up":
-        self._canvas.move(val, 0, -TRIPLET_HEIGHT)
+        self._canvas.move(val, 0, -TRIPLET_HEIGHT * cells)
       elif direction == "down":
-        self._canvas.move(val, 0, TRIPLET_HEIGHT)
+        self._canvas.move(val, 0, TRIPLET_HEIGHT * cells)
 
   ##################
   # new
   #   Creates new file. If one is loaded,
   #   prompts user to save.
   def new(self, event = None):
-    print("new called")
-    print(self._grid.items())
-    print(BASE_GRID.items())
-
     if self._grid.items() != BASE_GRID.items():
       self.promptSave()
     self._openfile = ""
@@ -768,21 +791,20 @@ class Editor(Frame):
   #   Prompts user to save file.
   def promptSave(self):
     if messagebox.askquestion("Save","Data will be lost.\nWould you like to save?") == "yes":
-      print()
       self.save()
 
   ##################
   # closeProgram
   #   Prompts save, then closes program.
   def closeProgram(self, event = None):
-    self.promptSave()
+    if self._grid.items() != BASE_GRID.items():
+      self.promptSave()
     self.master.destroy()
 
   ##################
   # open
   #   Initiates dialog to open flow file.
   def open(self, event = None):
-    print("open called")
     if self._openfile != "":
       self.promptSave()
     self._openfile = filedialog.askopenfilename(
@@ -820,7 +842,6 @@ class Editor(Frame):
   #   Saves the current file. If file has not
   #   been saved yet, initiates dialog.
   def save(self, event = None):
-    print("save called")
     if self._openfile == "":
       self.saveAs()
     else:
@@ -863,7 +884,6 @@ class Editor(Frame):
   def exit(self):
     if self._openfile != "":
       self.promptSave()
-    print("exiting")
     self.master.quit()
 
   ##################
