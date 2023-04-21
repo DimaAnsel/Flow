@@ -1,6 +1,6 @@
 /////////////////////
 // loader.h
-// Noah Ansel
+// Dima Ansel
 // 2015-11-19
 // -----------------
 // Parses a file into a 2D array of

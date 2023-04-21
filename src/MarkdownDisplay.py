@@ -1,6 +1,6 @@
 ##########################
 # MarkdownDisplay.py
-# Noah Ansel
+# Dima Ansel
 # 2015-12-16
 # --------------
 # A tkinter class for displaying

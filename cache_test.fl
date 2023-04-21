@@ -1,0 +1,14 @@
+first loop: set A - L in increasing distance pattern
+second loop: set 0-9 in decreasing if not already occupied
+
+#> @gi:30@gg:10   @hgv  '@ @gh<  
+                     :31      +01
+                     +gg      @gg
+                  v  ?4C'gg;gh^  
+      v  @gv;gv,03<  <  <        
+^        <  <        ,vv         
+      >  ?01^        @vv         
+         >  v        ^  :30<  <  
+            '@       ^  +01?39^  
+         v  ?01:gi   ;vv@gi^     
+         >  >     ^              

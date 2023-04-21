@@ -1,6 +1,6 @@
 /////////////////////
 // main.h
-// Noah Ansel
+// Dima Ansel
 // 2015-11-19
 // -----------------
 // Common include for all files.
@@ -31,9 +31,13 @@
 #define CMD_MUL		'*' // multiplies this and loaded var
 #define CMD_DIV		'/' // divides loaded var by this
 #define CMD_MOD		'%' // modulos loaded var by this
-#define CMD_COMP	'?' // compares this to loaded var
+#define CMD_COMP	'?' // compares this to loaded var (unsigned)
+#define CMD_SCOMP	'!' // compares this to loaded var (signed)
 #define CMD_OUT		'"' // prints out ASCII of loaded var
 #define CMD_IN		'~' // gets single char input in loaded var; if succeeds, sets this to FF, else 00
+#define CMD_NEXT	'\'' // loads a variable forward in memory
+#define CMD_PREV	',' // loads a variable backwards in memory
+#define CMD_CACHE	';' // caches LOADED_VAR offset to this
 
 #define CMD_UP		'^' // turns program flow up
 #define CMD_DOWN	'v' // turns program flow down
@@ -41,6 +45,8 @@
 #define CMD_RIGHT	'>' // turns program flow right
 
 #define VARSPACE_SIZE	16	// number of unique characters
+#define VARSPACE_START	'g' // start character for variable space
+#define VARSPACE_END	VARSPACE_START + (char)VARSPACE_SIZE - (char)1 // end character for variable space
 
 #define OP_LENGTH 3
 #define OPS_PER_SECTOR 8
@@ -68,6 +74,7 @@ typedef enum ErrCode_enum {
 	INVALID_EXPRESSION,
 	INVALID_VARIABLENAME,
 	INVALID_OPERATOR,
+	BOUNDS_VIOLATION,
 
 	// debug errors
 	INVALID_DEBUG_FILE

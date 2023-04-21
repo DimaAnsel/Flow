@@ -1,6 +1,6 @@
 /////////////////////
 // loader.c
-// Noah Ansel
+// Dima Ansel
 // 2015-11-19
 // -----------------
 // See loader.h for info.
@@ -48,7 +48,7 @@ ErrCode loadFile(char filename[]) {
 	}
 
 	fclose(fp);
-	
+
 	// Error checking
 	if (start_cmds == 0) {
 		return NO_START_CMD;
@@ -61,7 +61,7 @@ ErrCode loadFile(char filename[]) {
 	if (maxLineLen == 1) {
 		return INVALID_FILE;
 	}
-	
+
 	// Set sizes of global array
 	if (maxLineLen % 3 == 0) {
 		PROGRAM_LINELEN = maxLineLen;

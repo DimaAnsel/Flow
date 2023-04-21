@@ -8,8 +8,8 @@
 
 #include "main.h"
 #include "loader.h"
-#include "debug.h"
 #include "interpreter.h"
+#include "debug.h"
 
 void initGlobals() {
 	// initialize all variables to 0
@@ -57,12 +57,19 @@ void handleError(ErrCode error) {
 	}
 	case INVALID_EXPRESSION: {
 		printf("RUNTIME ERROR: Invalid expression at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
+		break;
 	}
 	case INVALID_VARIABLENAME: {
 		printf("RUNTIME ERROR: Invalid variable name at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
+		break;
 	}
 	case INVALID_OPERATOR: {
 		printf("RUNTIME ERROR: Invalid operator at line %d column %d.\n", CURRENT_LINE, CURRENT_COLUMN);
+		break;
+	}
+	case BOUNDS_VIOLATION: {
+		printf("RUNTIME ERROR: Attempted to access invalid memory location at line %d column %d. Current location: %p. Bounds: %p ~ %p.\n", CURRENT_LINE, CURRENT_COLUMN, LOADED_VAR, VAR_SPACE, &VAR_SPACE[VARSPACE_SIZE-1][VARSPACE_SIZE-1]);
+		break;
 	}
 	// miscellaneous errors
 	case INVALID_DEBUG_FILE: {
@@ -108,6 +115,7 @@ int main(void) {
 	if (ERROR == NO_ERROR) {
 		printf("[Flow] Program exited successfully.\n");
 	}
+	dump_VAR_SPACE(0);
 	printf("\n[Flow] Press Enter to close this window . . . ");
 	getchar();
 

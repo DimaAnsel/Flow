@@ -1,6 +1,6 @@
 #########################
 # Flow Editor.py
-# Noah Ansel
+# Dima Ansel
 # 2015-11-22
 # --------------
 # An editor for making Flow
