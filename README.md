@@ -38,7 +38,7 @@ Each operation in a Flow program has three characters. The first is the operator
 | , | ,01 | load previous | Loads the variable X steps lower in memory, where X is this operation's value. |
 | ; | ;gg | cache | Sets the target variable to the absolute value of the offset from it to the currently loaded variable. |
 | : | :01 | set | Sets the loaded variable to the value of this expression. |
-| ) | )gh | copy | Copies the loaded variable to the value of this. |
+| ) | )gh | copy | Copies the loaded variable to the target variable. |
 | + | +01 | add | Adds the value of this operation to the currently loaded variable. |
 | - | -01 | subtract | Subtracts the value of this expression from the currently loaded variable. |
 | * | *02 | multiply | Multiplies the loaded variable by this expression. |
