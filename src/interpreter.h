@@ -22,6 +22,7 @@ ErrCode cmd_cache(char expression[]);
 
 // arithmetic operators
 ErrCode cmd_set(char expression[]);
+ErrCode cmd_copy(char expression[]);
 ErrCode cmd_add(char expression[]);
 ErrCode cmd_subtract(char expression[]);
 ErrCode cmd_multiply(char expression[]);

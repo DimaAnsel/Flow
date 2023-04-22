@@ -11,4 +11,4 @@
 
 #include "main.h"
 
-ErrCode loadFile(char fileName[]);
+ErrCode load_file(char fileName[]);

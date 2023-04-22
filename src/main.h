@@ -25,7 +25,11 @@
 #define CMD_IGNORE	' ' // spaces are ignored
 
 #define CMD_LOAD	'@' // sets LOADED_VAR pointer
+#define CMD_NEXT	'\'' // loads a variable forward in memory
+#define CMD_PREV	',' // loads a variable backwards in memory
+#define CMD_CACHE	';' // caches LOADED_VAR offset to this
 #define CMD_SET		':' // sets loaded var to this
+#define CMD_COPY	')' // copies LOADED_VAR to this var
 #define CMD_ADD		'+' // adds this to loaded var
 #define CMD_SUB		'-' // subtracts this from loaded var
 #define CMD_MUL		'*' // multiplies this and loaded var
@@ -35,9 +39,6 @@
 #define CMD_SCOMP	'!' // compares this to loaded var (signed)
 #define CMD_OUT		'"' // prints out ASCII of loaded var
 #define CMD_IN		'~' // gets single char input in loaded var; if succeeds, sets this to FF, else 00
-#define CMD_NEXT	'\'' // loads a variable forward in memory
-#define CMD_PREV	',' // loads a variable backwards in memory
-#define CMD_CACHE	';' // caches LOADED_VAR offset to this
 
 #define CMD_UP		'^' // turns program flow up
 #define CMD_DOWN	'v' // turns program flow down
@@ -90,6 +91,7 @@ int CURRENT_LINE;
 int CURRENT_COLUMN;
 FlowDir PROGRAM_FLOW;
 char PROGRAM_COMPLETE;
+char DEBUG_MODE;
 
 char VAR_SPACE[VARSPACE_SIZE][VARSPACE_SIZE]; // variable space
 char* LOADED_VAR;
@@ -98,5 +100,5 @@ ErrCode ERROR;
 
 // function signatures
 
-void initGlobals();
-void handleError(ErrCode error);
+void init_globals();
+void handle_error(ErrCode error);

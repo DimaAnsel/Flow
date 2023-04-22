@@ -63,6 +63,9 @@ ErrCode tick() {
 		case CMD_SET: {
 			return cmd_set(expression);
 		}
+		case CMD_COPY: {
+			return cmd_copy(expression);
+		}
 		case CMD_ADD: {
 			return cmd_add(expression);
 		}
@@ -188,6 +191,20 @@ ErrCode cmd_set(char expression[]) {
 	error = evaluate(expression, &temp);
 	if (error == NO_ERROR) {
 		(*LOADED_VAR) = temp;
+	}
+	return error;
+}
+
+//////////////
+// cmd_prev
+//	Sets the target variable to the value
+//	of the loaded variable.
+ErrCode cmd_copy(char expression[]) {
+	ErrCode error;
+	char* var = NULL;
+	error = get_variable(expression, &var);
+	if (error == NO_ERROR) {
+		(*var) = (*LOADED_VAR);
 	}
 	return error;
 }

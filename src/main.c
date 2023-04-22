@@ -11,7 +11,7 @@
 #include "interpreter.h"
 #include "debug.h"
 
-void initGlobals() {
+void init_globals() {
 	// initialize all variables to 0
 	memset(VAR_SPACE, 0, sizeof(char)*VARSPACE_SIZE*VARSPACE_SIZE);
 	
@@ -19,6 +19,7 @@ void initGlobals() {
 	LOADED_VAR = &VAR_SPACE[0][0];
 	
 	// initialize other globals
+	ERROR = INVALID_FILE;
 	PROGRAM_FLOW = UP;
 	PROGRAM_ARRAY = NULL;
 	PROGRAM_NUMLINES = 0;
@@ -28,7 +29,7 @@ void initGlobals() {
 	PROGRAM_COMPLETE = 0;
 }
 
-void handleError(ErrCode error) {
+void handle_error(ErrCode error) {
 	switch (error) {
 	case NO_ERROR: {
 		break;
@@ -84,38 +85,76 @@ void handleError(ErrCode error) {
 }
 
 
-int main(void) {
-	int i = 0;
-	char filename[512];
-	initGlobals();
+int main(int argc, char *argv[]) {
+	int i;
+	init_globals();
 
-	printf("[Flow] Enter the file to be executed: ");
-	filename[0] = getchar();
-	while (filename[i] != '\n') {
-		i++;
-		filename[i] = getchar();
+	// command line arguments
+	for (int i = 1; i < argc; i++) {
+		if ((strcmp(argv[i],"-h") == 0) || (strcmp(argv[i],"--help") == 0)) {
+			printf("Usage: flow [options] [file]\n");
+			printf("Options:\n");
+			printf("\t-h\t--help\tDisplay this help menu.\n");
+			printf("\t-d\t--debug\tPrint loaded program file and variable space.\n");
+			printf("\t-vd\t--debug-verbose\tSame as --debug, but prints variable space in hex.\n");
+			return 1;
+		} else if ((strcmp(argv[i],"-d") == 0) || (strcmp(argv[i],"--debug") == 0)) {
+			DEBUG_MODE = 1;
+		} else if ((strcmp(argv[i], "-vd") == 0) || (strcmp(argv[i], "--debug-verbose") == 0)) {
+			DEBUG_MODE = 2;
+		} else if (ERROR == INVALID_FILE) {
+			// haven't loaded file yet
+			ERROR = load_file(argv[i]);
+			if (ERROR != NO_ERROR) {
+				handle_error(ERROR);
+				if (DEBUG_MODE > 0) {
+					print_PROGRAM_ARRAY();
+				}
+				return 0;
+			}
+		} else {
+			printf("Unrecognized argument: %s\n", argv[i]);
+			return 0;
+		}
 	}
-	filename[i] = '\0';
 
-	ERROR = loadFile(filename);
-	if (ERROR != NO_ERROR) {
-		handleError(ERROR);
-		return 0;
-	} else {
-		printf("[Flow] Beginning execution . . .\n");
+	// if input file not provided, get it here
+	if (ERROR == INVALID_FILE) {
+		char filename[512];
+		printf("[Flow] Enter the file to be executed: ");
+		filename[0] = getchar();
+		i = 0;
+		while (filename[i] != '\n') {
+			i++;
+			filename[i] = getchar();
+		}
+		filename[i] = '\0';
+
+		ERROR = load_file(filename);
+		if (ERROR != NO_ERROR) {
+			handle_error(ERROR);
+			if (DEBUG_MODE > 0) {
+				print_PROGRAM_ARRAY();
+			}
+			return 0;
+		}
 	}
 
+	// go with the flow!
+	printf("[Flow] Beginning execution . . .\n");
 	while (PROGRAM_COMPLETE == 0) {
 		ERROR = tick();
 		if (ERROR != NO_ERROR) {
-			handleError(ERROR);
+			handle_error(ERROR);
 			break;
 		}
 	}
 	if (ERROR == NO_ERROR) {
 		printf("[Flow] Program exited successfully.\n");
 	}
-	dump_VAR_SPACE(0);
+	if (DEBUG_MODE > 0) {
+		dump_VAR_SPACE(DEBUG_MODE - 1);
+	}
 	printf("\n[Flow] Press Enter to close this window . . . ");
 	getchar();
 

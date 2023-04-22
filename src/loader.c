@@ -9,7 +9,7 @@
 #include "loader.h"
 #include "main.h"
 
-ErrCode loadFile(char filename[]) {
+ErrCode load_file(char filename[]) {
 	int start_cmds = 0; // bool to prevent using multiple # operators
 	int lineLen = 0; // tracks when it should cut off for next
 	int maxLineLen = 0;

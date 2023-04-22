@@ -34,15 +34,16 @@ Each operation in a Flow program has three characters. The first is the operator
 | v | v   | down | Sets the flow direction to down. |
 | ^ | ^   | up | Sets the flow direction to up. |
 | @ | @gg | load | Loads a variable by pointing the interpreter to that variable. |
-| , | '01 | load next | Loads the variable X steps forward in memory, where X is this operation's value. |
+| ' | '01 | load next | Loads the variable X steps forward in memory, where X is this operation's value. |
 | , | ,01 | load previous | Loads the variable X steps lower in memory, where X is this operation's value. |
 | ; | ;gg | cache | Sets the target variable to the absolute value of the offset from it to the currently loaded variable. |
 | : | :01 | set | Sets the loaded variable to the value of this expression. |
+| ) | )gh | copy | Copies the loaded variable to the value of this. |
 | + | +01 | add | Adds the value of this operation to the currently loaded variable. |
 | - | -01 | subtract | Subtracts the value of this expression from the currently loaded variable. |
 | * | *02 | multiply | Multiplies the loaded variable by this expression. |
 | / | /02 | divide | Divides the loaded variable by this expression. |
-| % | %02 | modulo | Modulos the loaded variable by this expression. |
+| % | %02 | modulo | Modulos the loaded variable by this expression. |expression. |
 | ? | ?gh | compare | Compares the loaded variable to this expression, treating both as unsigned values. If the loaded variable is less than this expression, the flow direction turns counter-clockwise. If the loaded variable is equal to this expression, the flow direction is unchanged. If greater than this expression, the flow direction turns clockwise. |
 | ! | !gh | signed compare | Compares the loaded variable to this expression, treating both as signed values. If the loaded variable is less than this expression, the flow direction turns counter-clockwise. If the loaded variable is equal to this expression, the flow direction is unchanged. If greater than this expression, the flow direction turns clockwise. |
 | " | "gg | print | Prints the specified variable to the screen. |

@@ -1,0 +1,1 @@
+gcc -I./ main.c interpreter.c loader.c -o flow
