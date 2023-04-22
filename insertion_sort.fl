@@ -1,18 +1,18 @@
-   Enter letters to sort. ENTER when done                            
-#> "45"6E"74"65"72"20   "6C"65"74"74"65"72"73"20   "74"6F"20   v     
-   v  "20"6E"65"68"77   "20"52"45"54"4E"45   "20"2E"74"72"6F"73<     
-   >  "64"6F"6E"65"2E"0A@hgv     >     v                             
-                           >  ~@ ?0Av  >  '01;vvv                    
- .-INSERTION SORT--------.       >     ^        @vv                  
- | actual algorithm in   | ^                 ,@ ?00v                 
- | bottom right. uses    |          :00                              
- | gg, gh, gi as scratch |          v           <  <                 
- '-----------------------'                                           
-      >     v                                                        
-      "@                      v  <  @hh         >  v                 
-^  "0A?00'01<  @gv               ?00<                             <  
-      "@                      >  >  ;gg)gh,01>  ?00   >  @gg'@ '01^  
-      >     ^                                   v  <                 
-                                    v  :gh)gi   ?gh   ^              
-                                             ,02>     ^              
-                                    >  '01:gi^                       
+   Enter letters to sort. ENTER when done                         
+#> "45"6E"74"65"72"20   "6C"65"74"74"65"72"73"20   "74"6F"20   v  
+   v  "20"6E"65"68"77   "20"52"45"54"4E"45   "20"2E"74"72"6F"73<  
+   >  "64"6F"6E"65"2E"0A@hgv     >     v                          
+                           >  ~@ ?0Av  >  '01;vvv                 
+ .--INSERTION SORT-------.       >     ^        @vv               
+ | actual algorithm in   | ^                 ,@ ?00v              
+ | bottom right. uses    |          :00                           
+ | gg, gh, gi as scratch |          v           <  <              
+ '-----------------------'                                        
+      >     v                                                     
+      "@                      v  <  @hh         >  v              
+^  "0A?00'01<  @gv               ?00<  '01'@ @gg      <           
+      "@                      >  >  ;gg)gh,01>  ?00   ^           
+      >     ^                                   v  <              
+                                    v  :gh)gi   ?gh   ^           
+                                             ,02>     ^           
+                                    >  '01:gi^                    
