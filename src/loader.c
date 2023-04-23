@@ -8,6 +8,7 @@
 
 #include "loader.h"
 #include "main.h"
+#include "debug.h"
 
 ErrCode load_file(char filename[]) {
 	int start_cmds = 0; // bool to prevent using multiple # operators
@@ -118,9 +119,15 @@ ErrCode load_file(char filename[]) {
 		break;
 	}
 	default: {
+		if (DEBUG_MODE > 0) {
+			print_PROGRAM_ARRAY();
+		}
 		return NO_START_DIRECTION;
 	}
 	}
 
+	if (DEBUG_MODE > 1) {
+		print_PROGRAM_ARRAY();
+	}
 	return NO_ERROR;
 }

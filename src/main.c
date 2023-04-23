@@ -107,9 +107,6 @@ int main(int argc, char *argv[]) {
 			ERROR = load_file(argv[i]);
 			if (ERROR != NO_ERROR) {
 				handle_error(ERROR);
-				if (DEBUG_MODE > 0) {
-					print_PROGRAM_ARRAY();
-				}
 				return 0;
 			}
 		} else {
@@ -133,9 +130,6 @@ int main(int argc, char *argv[]) {
 		ERROR = load_file(filename);
 		if (ERROR != NO_ERROR) {
 			handle_error(ERROR);
-			if (DEBUG_MODE > 0) {
-				print_PROGRAM_ARRAY();
-			}
 			return 0;
 		}
 	}
