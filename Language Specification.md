@@ -14,7 +14,7 @@ To achieve this, the interpreter tracks programs' current location and direction
 
 ## Variables
 
-Flow has a finite number of variables, all of the character type, identified by two-character names consisting of the lowercase characters _g_ through _v_. The interpreter stores these characters as a 2D array. Variables are modified by "loading" a variable, which causes the interpreter to point to a specific variable, and then performing an operation.
+Flow has a finite number of variables, all of the unsigned character type, identified by two-character names consisting of the lowercase characters _g_ through _v_. The interpreter stores these characters as a 2D array. Variables are modified by "loading" a variable, which causes the interpreter to point to a specific variable, and then performing an operation.
 
 The currently loaded variable can be referenced by the @ value in most commands.
 
@@ -44,7 +44,6 @@ Each operation in a Flow program has three characters. The first is the operator
 | * | *02 | multiply | Multiplies the loaded variable by this expression. |
 | / | /02 | divide | Divides the loaded variable by this expression. |
 | % | %02 | modulo | Modulos the loaded variable by this expression. |expression. |
-| ? | ?gh | compare | Compares the loaded variable to this expression, treating both as unsigned values. If the loaded variable is less than this expression, the flow direction turns counter-clockwise. If the loaded variable is equal to this expression, the flow direction is unchanged. If greater than this expression, the flow direction turns clockwise. |
-| ! | !gh | signed compare | Compares the loaded variable to this expression, treating both as signed values. If the loaded variable is less than this expression, the flow direction turns counter-clockwise. If the loaded variable is equal to this expression, the flow direction is unchanged. If greater than this expression, the flow direction turns clockwise. |
+| ? | ?gh | compare | Compares the loaded variable to this expression. If the loaded variable is less than this expression, the flow direction turns counter-clockwise. If the loaded variable is equal to this expression, the flow direction is unchanged. If greater than this expression, the flow direction turns clockwise. |
 | " | "gg | print | Prints the specified variable to the screen. |
 | ~ | ~gg | read | Reads a single character from the input into the var. |

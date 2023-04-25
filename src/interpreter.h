@@ -29,7 +29,6 @@ ErrCode cmd_multiply(char expression[]);
 ErrCode cmd_divide(char expression[]);
 ErrCode cmd_modulus(char expression[]);
 ErrCode cmd_compare(char expression[]);
-ErrCode cmd_compare_signed(char expression[]);
 
 // I/O
 ErrCode cmd_out(char expression[]);
@@ -40,7 +39,7 @@ void rotate_ccw();
 void rotate_cw();
 
 // helper functions
-ErrCode evaluate(char expression[], char* ret);
-ErrCode translate_hex(char expression[], char* ret);
-ErrCode get_variable(char expression[], char** ret);
-ErrCode move_variable(char expression[], char** ret, char decrement);
+ErrCode evaluate(char expression[], unsigned char* ret);
+ErrCode translate_hex(char expression[], unsigned char* ret);
+ErrCode get_variable(char expression[], unsigned char** ret);
+ErrCode move_variable(char expression[], unsigned char** ret, char decrement);

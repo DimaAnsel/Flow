@@ -35,8 +35,7 @@
 #define CMD_MUL		'*' // multiplies this and loaded var
 #define CMD_DIV		'/' // divides loaded var by this
 #define CMD_MOD		'%' // modulos loaded var by this
-#define CMD_COMP	'?' // compares this to loaded var (unsigned)
-#define CMD_SCOMP	'!' // compares this to loaded var (signed)
+#define CMD_COMP	'?' // compares this to loaded var
 #define CMD_OUT		'"' // prints out ASCII of loaded var
 #define CMD_IN		'~' // gets single char input in loaded var; if succeeds, sets this to FF, else 00
 
@@ -93,8 +92,8 @@ FlowDir PROGRAM_FLOW;
 char PROGRAM_COMPLETE;
 char DEBUG_MODE;
 
-char VAR_SPACE[VARSPACE_SIZE][VARSPACE_SIZE]; // variable space
-char* LOADED_VAR;
+unsigned char VAR_SPACE[VARSPACE_SIZE][VARSPACE_SIZE]; // variable space
+unsigned char* LOADED_VAR;
 
 ErrCode ERROR;
 
